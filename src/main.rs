@@ -1,13 +1,7 @@
 use clap::{clap_app, ArgMatches};
-use git::utils::ObjectType;
-use std::fs::{create_dir, File};
-use std::io::{self, prelude::*};
-use std::iter::Iterator as _;
 use std::path::Path;
 
-fn main() -> io::Result<()> {
-    let stdin = std::io::stdin();
-
+fn main() -> std::io::Result<()> {
     // v3.0でハイフンが使えるようになるらしい…
     let matches: ArgMatches = clap_app!(git =>
         (@setting SubcommandRequiredElseHelp)
@@ -24,55 +18,19 @@ fn main() -> io::Result<()> {
     )
     .get_matches();
 
-    let mut repo = Path::new(".git");
+    let mut repo_path = Path::new(".git");
     loop {
-        if repo.exists() && repo.is_dir() {
+        if repo_path.exists() && repo_path.is_dir() {
             break;
         }
-        if repo.parent().is_none() {
+        if repo_path.parent().is_none() {
             panic!("this is not a git repository.");
         }
-        repo = repo.parent().unwrap();
+        repo_path = repo_path.parent().unwrap();
     }
 
     if let Some(matches) = matches.subcommand_matches("hash_object") {
-        let mut files: Vec<Box<dyn Read>> = if matches.is_present("use_stdin") {
-            vec![Box::new(stdin.lock())]
-        } else {
-            let files = matches.values_of("file");
-            if files.is_none() {
-                println!("{}", matches.usage());
-                vec![]
-            } else {
-                match files
-                    .unwrap()
-                    .map(|file| File::open(&file).and_then(|f| Ok(Box::new(f) as Box<dyn Read>)))
-                    .collect::<Result<Vec<_>, _>>()
-                {
-                    Ok(files) => files,
-                    Err(e) => {
-                        eprintln!("{}", e);
-                        vec![]
-                    }
-                }
-            }
-        };
-        for f in files.iter_mut() {
-            let mut buf = Vec::new();
-            f.read_to_end(&mut buf)?;
-            let (hash, compressed) =
-                git::utils::hash_object(ObjectType::Blob, &buf).expect("failed to hashing object.");
-            let hex_hash: String = hash.iter().map(|x| format!("{:02x}", x)).collect();
-            if matches.is_present("actually_write") {
-                let index_dir = format!("{}/objects/{}", repo.to_str().unwrap(), &hex_hash[..2]);
-                let file_path = format!("{}/{}", index_dir, &hex_hash[2..]);
-                if !Path::new(&index_dir).exists() {
-                    create_dir(&index_dir)?;
-                }
-                File::create(file_path)?.write_all(&compressed).unwrap();
-            }
-            println!("{}", hex_hash);
-        }
+        git::commands::hash_object(&repo_path, &matches)?;
     }
 
     Ok(())

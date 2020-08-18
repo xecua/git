@@ -21,7 +21,7 @@ impl std::fmt::Display for ObjectType {
     }
 }
 
-pub fn hash_object(
+pub fn compress_object(
     objtype: ObjectType,
     data: &[u8],
 ) -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error>> {
