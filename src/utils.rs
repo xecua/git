@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 pub enum ObjectType {
     Blob,
     Tree,
@@ -21,6 +22,7 @@ impl std::fmt::Display for ObjectType {
     }
 }
 
+#[must_use]
 pub fn compress_object(
     objtype: ObjectType,
     data: &[u8],
@@ -42,4 +44,16 @@ pub fn compress_object(
     encoder.write_all(content.as_bytes())?;
     let content = encoder.finish()?;
     Ok((hash.as_slice().to_owned(), content))
+}
+
+#[must_use]
+pub fn decompress_object(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    use flate2::read::ZlibDecoder;
+    use std::io::Read as _;
+
+    let mut decoder = ZlibDecoder::new(data);
+    let mut res = Vec::new();
+    decoder.read_to_end(&mut res)?;
+
+    Ok(res)
 }

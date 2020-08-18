@@ -15,6 +15,15 @@ fn main() -> std::io::Result<()> {
                 (@arg file: ... "target file")
             )
         )
+        (@subcommand cat_file =>
+            (about: "cat object")
+            // (@group object_type =>
+            //     (@arg pretty: -p "pretty print object by detecting object type")
+            //     (@arg obj_type: "object type")
+            // )
+            (@arg object: "target object")
+
+        )
     )
     .get_matches();
 
@@ -29,8 +38,17 @@ fn main() -> std::io::Result<()> {
         repo_path = repo_path.parent().unwrap();
     }
 
-    if let Some(matches) = matches.subcommand_matches("hash_object") {
-        git::commands::hash_object(&repo_path, &matches)?;
+    if let Err(e) = {
+        if let Some(matches) = matches.subcommand_matches("hash_object") {
+            git::commands::hash_object(&repo_path, &matches)
+        } else if let Some(matches) = matches.subcommand_matches("cat_file") {
+            git::commands::cat_file(&repo_path, &matches)
+        } else {
+            Ok(())
+        }
+    } {
+        eprintln!("{}", e);
+        std::process::exit(1);
     }
 
     Ok(())
