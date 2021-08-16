@@ -1,6 +1,9 @@
 use clap::{clap_app, ArgMatches};
 use std::path::Path;
 
+mod commands;
+mod utils;
+
 fn main() -> std::io::Result<()> {
     // v3.0でハイフンが使えるようになるらしい…
     let matches: ArgMatches = clap_app!(git =>
@@ -40,9 +43,9 @@ fn main() -> std::io::Result<()> {
 
     if let Err(e) = {
         if let Some(matches) = matches.subcommand_matches("hash_object") {
-            git::commands::hash_object(&repo_path, &matches)
+            commands::hash_object::hash_object(&repo_path, &matches)
         } else if let Some(matches) = matches.subcommand_matches("cat_file") {
-            git::commands::cat_file(&repo_path, &matches)
+            commands::cat_file::cat_file(&repo_path, &matches)
         } else {
             Ok(())
         }
