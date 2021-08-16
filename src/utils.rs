@@ -57,3 +57,26 @@ pub fn decompress_object(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Err
 
     Ok(res)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{compress_object, decompress_object};
+
+    #[test]
+    fn compress_simple() {
+        let dat = "abc".as_bytes();
+        let (hash, content) = compress_object(super::ObjectType::Blob, dat).unwrap();
+        #[rustfmt::skip]
+        assert_eq!( hash, [ 242, 186, 143, 132, 171, 92, 27, 206, 132, 167, 180, 65, 203, 25, 89, 207, 199, 9, 59, 127 ]);
+        #[rustfmt::skip]
+        assert_eq!(content, [120, 156, 75, 202, 201, 79, 82, 48, 102, 72, 76, 74, 6, 0, 17, 217, 3, 25]);
+    }
+
+    #[test]
+    fn decompress_simple() {
+        #[rustfmt::skip]
+        let dat = [120, 156, 75, 202, 201, 79, 82, 48, 102, 72, 76, 74, 6, 0, 17, 217, 3, 25];
+        let res = decompress_object(&dat).unwrap();
+        assert_eq!(res, "blob 3\0abc".as_bytes());
+    }
+}
