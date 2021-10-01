@@ -23,10 +23,7 @@ impl std::fmt::Display for ObjectType {
 }
 
 #[must_use]
-pub fn compress_object(
-    objtype: ObjectType,
-    data: &[u8],
-) -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error>> {
+pub fn compress_object(objtype: ObjectType, data: &[u8]) -> anyhow::Result<(Vec<u8>, Vec<u8>)> {
     use flate2::{write::ZlibEncoder, Compression};
     use sha1::Digest as _;
     use std::io::prelude::*;
@@ -47,7 +44,7 @@ pub fn compress_object(
 }
 
 #[must_use]
-pub fn decompress_object(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+pub fn decompress_object(data: &[u8]) -> anyhow::Result<Vec<u8>> {
     use flate2::read::ZlibDecoder;
     use std::io::Read as _;
 

@@ -1,14 +1,17 @@
-use clap::{clap_app, ArgMatches};
+use clap::clap_app;
 use std::path::Path;
 
 mod commands;
+mod errors;
 mod utils;
 
-fn main() -> std::io::Result<()> {
+fn main() -> anyhow::Result<()> {
+    env_logger::init();
+
     // v3.0でハイフンが使えるようになるらしい…
-    let matches: ArgMatches = clap_app!(git =>
-        (@setting SubcommandRequiredElseHelp)
+    let matches = clap_app!(git =>
         (version: "0.1")
+        (@setting SubcommandRequiredElseHelp)
         (@arg repo: -r --repo +takes_value "repository path")
         (@subcommand hash_object =>
             (about: "hash given objects")
@@ -25,7 +28,9 @@ fn main() -> std::io::Result<()> {
             //     (@arg obj_type: "object type")
             // )
             (@arg object: "target object")
-
+        )
+        (@subcommand read_index =>
+            (about: "read from index and show it (original command)")
         )
     )
     .get_matches();
@@ -41,17 +46,12 @@ fn main() -> std::io::Result<()> {
         repo_path = repo_path.parent().unwrap();
     }
 
-    if let Err(e) = {
-        if let Some(matches) = matches.subcommand_matches("hash_object") {
-            commands::hash_object::hash_object(&repo_path, &matches)
-        } else if let Some(matches) = matches.subcommand_matches("cat_file") {
-            commands::cat_file::cat_file(&repo_path, &matches)
-        } else {
-            Ok(())
-        }
-    } {
-        eprintln!("{}", e);
-        std::process::exit(1);
+    if let Some(matches) = matches.subcommand_matches("hash_object") {
+        commands::hash_object::hash_object(&repo_path, &matches)?
+    } else if let Some(matches) = matches.subcommand_matches("cat_file") {
+        commands::cat_file::cat_file(&repo_path, &matches)?
+    } else if matches.subcommand_matches("read_index").is_some() {
+        commands::read_index::read_index(&repo_path)?
     }
 
     Ok(())

@@ -1,12 +1,11 @@
 use crate::utils::*;
 use clap::ArgMatches;
-use std::error::Error;
 use std::fs::{create_dir, File};
 use std::io::prelude::*;
 use std::iter::Iterator as _;
 use std::path::Path;
 
-pub fn hash_object(repo_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
+pub fn hash_object(repo_path: &Path, matches: &ArgMatches) -> anyhow::Result<()> {
     let stdin = std::io::stdin();
 
     let mut files: Vec<Box<dyn Read>> = if matches.is_present("use_stdin") {

@@ -1,12 +1,12 @@
+use anyhow::Context;
 use clap::ArgMatches;
-use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 use std::iter::Iterator as _;
 use std::path::Path;
 
-pub fn cat_file(repo_path: &Path, matches: &ArgMatches) -> Result<(), Box<dyn Error>> {
-    let object = matches.value_of("object").ok_or("object not specified")?;
+pub fn cat_file(repo_path: &Path, matches: &ArgMatches) -> anyhow::Result<()> {
+    let object = matches.value_of("object").context("object not specified")?;
     // let object_type = {
     //     use crate::utils::ObjectType::*;
     //     match matches.value_of("object_type") {
