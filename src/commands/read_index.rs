@@ -1,6 +1,5 @@
 #![allow(unused)]
 use anyhow::{bail, Error};
-use git2::Object;
 use std::convert::{TryFrom, TryInto};
 use std::fs::File;
 use std::io::Read;
